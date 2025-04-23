@@ -1,6 +1,6 @@
 # src/embeddings/test_embed_text.py
 
-from embed_text import embed_text, save_embeddings, load_embeddings
+from embed_text import embed_text, save_embeddings, load_embeddings, save_documents
 
 if __name__ == "__main__":
     # Example data
@@ -15,6 +15,7 @@ if __name__ == "__main__":
 
     # Save embeddings to file
     save_embeddings(embeddings, "src/embeddings/embeddings.npy")
+    save_documents(texts, "src/vector_store/documents.pkl")
 
     # Load the embeddings back
     loaded_embeddings = load_embeddings("src/embeddings/embeddings.npy")

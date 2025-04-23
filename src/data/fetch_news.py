@@ -44,4 +44,7 @@ def fetch_news_from_marketaux(ticker: str, max_articles: int = 10) -> List[str]:
     headlines = [article.get("title", "") for article in articles if article.get("title")]
 
     logger.info(f"Fetched {len(headlines)} headlines for {ticker}")
-    return headlines
+    return [{"content": headline} for headline in headlines]
+
+
+

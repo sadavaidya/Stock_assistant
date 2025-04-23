@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Any
+import pickle
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,6 +31,23 @@ def embed_text(texts: List[str]) -> np.ndarray:
     except Exception as e:
         logger.error(f"Error embedding texts: {e}")
         return np.array([])
+
+def save_documents(documents: list, filename: str) -> None:
+    """
+    Save the list of documents (text chunks) to a file.
+
+    Args:
+        documents (list): List of text chunks corresponding to embeddings
+        filename (str): Path to save the document list (e.g., documents.pkl)
+    """
+    try:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "wb") as f:
+            pickle.dump(documents, f)
+        logger.info(f"Documents saved to {filename}")
+    except Exception as e:
+        logger.error(f"Error saving documents: {e}")
+
 
 def save_embeddings(embeddings: np.ndarray, filename: str) -> None:
     """
@@ -63,3 +81,4 @@ def load_embeddings(filename: str) -> np.ndarray:
     except Exception as e:
         logger.error(f"Error loading embeddings from {filename}: {e}")
         return np.array([])
+

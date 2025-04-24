@@ -1,6 +1,6 @@
 # src/embeddings/test_embed_text.py
 
-from embed_text import embed_text, save_embeddings, load_embeddings, save_documents
+from embed_text import embed_documents, save_embeddings
 
 if __name__ == "__main__":
     # Example data
@@ -10,14 +10,14 @@ if __name__ == "__main__":
     ]
 
     print("\n=== Embedding Texts ===")
-    embeddings = embed_text(texts)
+    embeddings = embed_documents(texts)
     print(embeddings[:2])  # Print first two embeddings for check
 
     # Save embeddings to file
-    save_embeddings(embeddings, "src/embeddings/embeddings.npy")
-    save_documents(texts, "src/vector_store/documents.pkl")
+    # save_embeddings(embeddings, "src/embeddings/embeddings.npy")
+    # save_documents(texts, "src/vector_store/documents.pkl")
 
-    # Load the embeddings back
-    loaded_embeddings = load_embeddings("src/embeddings/embeddings.npy")
-    print("\n=== Loaded Embeddings ===")
-    print(loaded_embeddings[:2])  # Print first two embeddings
+    # # Load the embeddings back
+    # # loaded_embeddings = load_embeddings("src/embeddings/embeddings.npy")
+    # print("\n=== Loaded Embeddings ===")
+    # print(loaded_embeddings[:2])  # Print first two embeddings

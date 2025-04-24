@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Optional
 import logging
 
-from src.embeddings.embed_text import embed_text
+from src.embeddings.embed_text import embed_documents
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

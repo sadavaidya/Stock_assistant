@@ -1,56 +1,44 @@
-import logging
-from pathlib import Path
-from typing import List
-
+# src/retrieval/retriever.py
 import faiss
+import numpy as np
 import pickle
+import logging
 from sentence_transformers import SentenceTransformer
-from src.embeddings.embed_text import embed_text
+from src.embeddings.embed_text import embed_documents
+from datetime import datetime
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("retriever")
+logger = logging.getLogger(__name__)
 
 # Paths
-INDEX_PATH = Path("src/vector_store/faiss_index.index")
-DOCS_PATH = Path("src/vector_store/documents.pkl")
+INDEX_PATH = "src/vector_store/faiss_index.index"
+DOCS_PATH = "src/vector_store/documents.pkl"
 
-# Load FAISS index
-def load_faiss_index():
-    try:
-        index = faiss.read_index(str(INDEX_PATH))
-        logger.info("FAISS index loaded successfully.")
-        return index
-    except Exception as e:
-        logger.error(f"Error loading FAISS index: {e}")
-        raise
+# Load model
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Load corresponding documents
-def load_documents() -> List[str]:
-    try:
-        with open(DOCS_PATH, "rb") as f:
-            documents = pickle.load(f)
-        logger.info(f"Loaded {len(documents)} documents.")
-        return documents
-    except Exception as e:
-        logger.error(f"Error loading documents: {e}")
-        raise
+def retrieve_documents(query, top_k=3):
+    # Load FAISS index
+    index = faiss.read_index(INDEX_PATH)
+    logger.info("FAISS index loaded successfully.")
 
-# Query FAISS index
-def retrieve_similar_documents(query: str, top_k: int = 3) -> List[str]:
-    # Embed the query
-    query_embedding = embed_text([query])
-    
-    # Load FAISS index and documents
-    index = load_faiss_index()
-    documents = load_documents()
+    # Load documents
+    with open(DOCS_PATH, "rb") as f:
+        documents = pickle.load(f)
+    logger.info(f"Loaded {len(documents)} documents.")
 
-    # Search
+    # Embed query
+    query_embedding, _ = embed_documents(
+    [{"text": query, "source": "user", "date": str(datetime.now().date()), "ticker": "unknown"}],
+    "all-MiniLM-L6-v2"
+)
+
+
+    # Search in FAISS
     distances, indices = index.search(query_embedding, top_k)
     logger.info(f"Top {top_k} documents retrieved for query: {query}")
     logger.info(f"Distances: {distances}")
     logger.info(f"Indices: {indices}")
 
-    # Get results
-    results = [documents[idx] for idx in indices[0] if idx < len(documents)]
+    # Collect matched documents
+    results = [documents[idx] for idx in indices[0]]
     return results

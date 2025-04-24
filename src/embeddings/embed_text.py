@@ -1,84 +1,52 @@
 # src/embeddings/embed_text.py
 
 import os
-import logging
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Any
 import pickle
+import numpy as np
+from tqdm import tqdm
+from sentence_transformers import SentenceTransformer
+import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize the embedding model (using a good pre-trained model like 'all-MiniLM-L6-v2')
-model = SentenceTransformer('all-MiniLM-L6-v2')
+MODEL_NAME = "all-MiniLM-L6-v2"
+EMBEDDINGS_PATH = "src/embeddings/embeddings.npy"
+DOCS_PATH = "src/vector_store/documents.pkl"
 
-def embed_text(texts: List[str]) -> np.ndarray:
-    """
-    Generate embeddings for a list of texts using the Sentence Transformers model.
+def embed_documents(docs, model_name=MODEL_NAME):
+    logger.info(f"Embedding {len(docs)} texts...")
+    model = SentenceTransformer(model_name)
 
-    Args:
-        texts (List[str]): List of strings (e.g., headlines, company info)
+    texts = [doc["text"] for doc in docs]
+    embeddings = model.encode(texts, show_progress_bar=True)
 
-    Returns:
-        np.ndarray: Embeddings corresponding to the input texts
-    """
-    try:
-        logger.info(f"Embedding {len(texts)} texts...")
-        embeddings = model.encode(texts, convert_to_numpy=True)
-        logger.info("Embeddings generation complete.")
-        return embeddings
-    except Exception as e:
-        logger.error(f"Error embedding texts: {e}")
-        return np.array([])
+    logger.info("Embeddings generation complete.")
+    return embeddings, docs
 
-def save_documents(documents: list, filename: str) -> None:
-    """
-    Save the list of documents (text chunks) to a file.
+def save_embeddings(embeddings, documents, embeddings_path=EMBEDDINGS_PATH, docs_path=DOCS_PATH):
+    np.save(embeddings_path, embeddings)
+    with open(docs_path, "wb") as f:
+        pickle.dump(documents, f)
 
-    Args:
-        documents (list): List of text chunks corresponding to embeddings
-        filename (str): Path to save the document list (e.g., documents.pkl)
-    """
-    try:
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "wb") as f:
-            pickle.dump(documents, f)
-        logger.info(f"Documents saved to {filename}")
-    except Exception as e:
-        logger.error(f"Error saving documents: {e}")
+    logger.info(f"Embeddings saved to {embeddings_path}")
+    logger.info(f"Documents saved to {docs_path}")
 
-
-def save_embeddings(embeddings: np.ndarray, filename: str) -> None:
-    """
-    Save the embeddings to a file.
-
-    Args:
-        embeddings (np.ndarray): Embedding vectors
-        filename (str): Path to the file (e.g., embeddings.npy)
-    """
-    try:
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        np.save(filename, embeddings)
-        logger.info(f"Embeddings saved to {filename}")
-    except Exception as e:
-        logger.error(f"Error saving embeddings: {e}")
-
-def load_embeddings(filename: str) -> np.ndarray:
-    """
-    Load pre-saved embeddings from a file.
-
-    Args:
-        filename (str): Path to the saved embeddings file
-
-    Returns:
-        np.ndarray: Loaded embeddings
-    """
-    try:
-        embeddings = np.load(filename)
-        logger.info(f"Embeddings loaded from {filename}")
-        return embeddings
-    except Exception as e:
-        logger.error(f"Error loading embeddings from {filename}: {e}")
-        return np.array([])
-
+# if __name__ == "__main__":
+    # Example test run with fake data
+    # sample_docs = [
+    #     {
+    #         "text": "Apple stock rose 3% today.",
+    #         "source": "yfinance",
+    #         "date": "2025-04-23",
+    #         "ticker": "AAPL"
+    #     },
+    #     {
+    #         "text": "Experts say Apple is on track for a strong Q2.",
+    #         "source": "marketaux",
+    #         "date": "2025-04-23",
+    #         "ticker": "AAPL"
+    #     }
+    # ]
+    # embeddings, updated_docs = embed_documents(sample_docs)
+    # save_embeddings(embeddings, updated_docs)

@@ -1,21 +1,24 @@
 import logging
-from src.generation.generator import generate_answers
+from src.generation.generator import generate_answer
 
 # Setup test logging
 logging.basicConfig(level=logging.INFO)
 
 def test_generate_answers():
-    query = "What's happening with Apple stock today?"
+    from src.generation.generator import generate_answer
+    import logging
+    logging.basicConfig(level=logging.INFO)
+
+    query = "Should I invest in Tesla stocks now?"
     contexts = [
-        "Apple Inc. stocks surged 5% in the last quarter.",
-        "Tesla has a strong outlook for 2025 despite global challenges.",
-        "Amazon is seeing record-breaking sales due to new product launches."
+        "Tesla stock has been fluctuating but maintains a strong upward trend.",
+        "Apple recently launched a new chip that boosted its stock prices.",
+        "NVIDIA shares are being driven by AI demand."
     ]
-    
-    answers = generate_answers(contexts, query, top_k=2)
-    print(f"Query: {query}")
-    for i, ans in enumerate(answers, 1):
-        print(f"Answer {i}: {ans}")
+
+    answer = generate_answer(query, contexts)
+    print(f"📌 Query: {query}\n✅ Answer: {answer}")
+
 
 if __name__ == "__main__":
     test_generate_answers()

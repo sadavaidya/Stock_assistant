@@ -28,7 +28,7 @@ def fetch_stock_summary_from_yfinance(ticker: str):
         else:
             insight += " The price is relatively stable."
 
-        text = f"{summary}\n\n{insight}"
+        text = f"{insight}"
 
         doc = {
             "text": text,

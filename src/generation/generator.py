@@ -9,7 +9,8 @@ qa_pipeline = pipeline("text2text-generation", model=model_name, tokenizer=model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 MAX_INPUT_LENGTH = 512  # Limit for model input
-CHUNK_SIZE = 400  # Ensures chunks stay within token limit
+CHUNK_SIZE = 400        # Ensures chunks stay within token limit
+
 
 def generate_answer(query, documents):
     try:
@@ -37,12 +38,15 @@ def generate_answer(query, documents):
 
         for chunk in chunks:
             prompt = (
-                f"You are a financial advisor.\n\n"
-                f"Here is some recent financial news:\n\n"
-                f"{chunk}\n\n"
-                f"Given the above, answer the following question clearly and concisely:\n"
-                f"{query}\n"
-                f"Respond only with your concise advice."
+                f"You are an expert financial assistant.\n\n"
+                f"Below are news documents strictly related to the user's query.\n"
+                f"Rules:\n"
+                f"- Use ONLY the given information.\n"
+                f"- DO NOT invent facts.\n"
+                f"- If the answer is not clearly found, reply exactly: 'Information not available in provided documents.'\n\n"
+                f"Documents:\n{chunk}\n\n"
+                f"Question: {query}\n\n"
+                f"Provide a short, clear, fact-based answer:"
             )
 
             logger.debug(f"Prompt to model:\n{prompt}")

@@ -1,4 +1,3 @@
-# src/retrieval/retriever.py
 import faiss
 import numpy as np
 import pickle
@@ -16,7 +15,11 @@ DOCS_PATH = "src/vector_store/documents.pkl"
 # Load model
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-def retrieve_documents(query, top_k=3):
+
+def retrieve_documents(query, top_k=3, ticker=None):
+    """
+    Retrieve top-k documents based on query and optionally rerank based on ticker mention.
+    """
     # Load FAISS index
     index = faiss.read_index(INDEX_PATH)
     logger.info("FAISS index loaded successfully.")
@@ -28,10 +31,9 @@ def retrieve_documents(query, top_k=3):
 
     # Embed query
     query_embedding, _ = embed_documents(
-    [{"text": query, "source": "user", "date": str(datetime.now().date()), "ticker": "unknown"}],
-    "all-MiniLM-L6-v2"
-)
-
+        [{"text": query, "source": "user", "date": str(datetime.now().date()), "ticker": "unknown"}],
+        "all-MiniLM-L6-v2"
+    )
 
     # Search in FAISS
     distances, indices = index.search(query_embedding, top_k)
@@ -39,6 +41,25 @@ def retrieve_documents(query, top_k=3):
     logger.info(f"Distances: {distances}")
     logger.info(f"Indices: {indices}")
 
-    # Collect matched documents
-    results = [documents[idx] for idx in indices[0]]
+    # Collect matched documents (handling out of range safely)
+    results = []
+    for idx in indices[0]:
+        if idx < len(documents):
+            results.append(documents[idx])
+        else:
+            logger.warning(f"Index {idx} out of bounds for loaded documents.")
+
+    # If ticker provided, rerank based on presence in text
+    if ticker:
+        results = rerank_by_ticker(results, ticker)
+
     return results
+
+
+def rerank_by_ticker(docs, ticker):
+    """
+    Rerank documents, prioritizing those mentioning the ticker.
+    """
+    reranked = sorted(docs, key=lambda doc: ticker.lower() in doc.get("text", "").lower(), reverse=True)
+    logger.info(f"Documents reranked based on presence of ticker '{ticker}'.")
+    return reranked

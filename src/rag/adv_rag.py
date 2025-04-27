@@ -1,12 +1,5 @@
 # adv_rag.py
-"""
-End-to-end Advanced RAG pipeline.
-1. Fetch stock + news documents
-2. Embed and save them
-3. Add to FAISS index
-4. Retrieve relevant docs for a query
-5. Generate answer using those docs
-"""
+
 
 from src.data.fetch_news import fetch_news_from_marketaux
 from src.data.fetch_stocks import fetch_stock_summary_from_yfinance
@@ -14,7 +7,7 @@ from src.embeddings.embed_text import embed_documents, save_embeddings
 from src.vector_store.faiss_store import FAISSVectorStore
 from src.retrieval.retriever import retrieve_documents
 from src.generation.generator import generate_answer
-from src.utils.extract_ticker import get_ticker_from_query
+from src.utils.extract_ticker import get_tickers_from_query
 
 import logging
 import os
@@ -29,7 +22,7 @@ DOCS_PATH = "src/vector_store/documents.pkl"
 
 def run_advanced_rag(query: str, top_k: int = 3):
 
-    ticker = get_ticker_from_query(query)
+    ticker = get_tickers_from_query(query)
     if not ticker:
         logger.warning("Could not extract ticker from query.")
         return
@@ -38,8 +31,9 @@ def run_advanced_rag(query: str, top_k: int = 3):
 
     # Step 1: Fetch documents
     logger.info("Fetching documents...")
-    news_docs = fetch_news_from_marketaux(ticker)
-    stock_docs = fetch_stock_summary_from_yfinance(ticker)
+    for ticker in ticker:
+        news_docs = fetch_news_from_marketaux(ticker)
+        stock_docs = fetch_stock_summary_from_yfinance(ticker)
     all_docs = news_docs + stock_docs
 
     if not all_docs:
